@@ -44,6 +44,13 @@ credentials are needed. Runtime explicitly disables Hugging Face downloads.
 Automatic source watching is disabled to avoid Transformers lazy-import watcher
 errors; restart the server after changing application code or configuration.
 
+## Public web demo (Vercel)
+
+A stateless FastAPI + static web UI over the same engine lives in `vercel/` and
+`polisdiff/webapi.py`; see [Vercel deployment](docs/VERCEL_DEPLOYMENT.md). It runs keyword
+retrieval inside the function (4 MiB upload limit) and can forward AI retrieval to a model
+host. The Streamlit app above remains the full local/offline product.
+
 ## Linux / financial organization's offline perimeter
 
 ```bash

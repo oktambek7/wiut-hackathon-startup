@@ -97,9 +97,14 @@ def _extract(data: bytes) -> Document:
                         detected_dates=extract_dates(pages[0].text), governing_reference=refs)
 
 
+def in_process() -> bool:
+    """Serverless hosts (Vercel) bound each invocation themselves; set to skip child processes."""
+    return os.getenv("POLISDIFF_ISOLATION", "").lower() == "inprocess"
+
+
 def extract_pdf(data: bytes, *, isolated: bool = True) -> Document:
     validate_pdf(data)
-    if not isolated:
+    if not isolated or in_process():
         return _extract(data)
     # Parsing runs in a killable process. Raw bytes are sent on stdin, never disk/logs.
     env = os.environ.copy()
@@ -123,6 +128,12 @@ def render_page(data: bytes, page_number: int) -> bytes:
     validate_pdf(data)
     if type(page_number) is not int or not 1 <= page_number <= MAX_PAGES:
         raise PDFError("Invalid page number.")
+    if in_process():
+        from .extract_worker import render_png
+        try:
+            return render_png(data, page_number)
+        except Exception as exc:
+            raise PDFError("Page could not be rendered safely.") from exc
     env = os.environ.copy()
     env["PYTHONIOENCODING"] = "utf-8"
     try:
@@ -147,8 +158,17 @@ def render_evidence(data, doc, finding, ev):
     passage = next((p for p in doc.passages if p.id == ev.passage_id), None)
     if passage is None or (passage.page, passage.start, passage.end, passage.text) != (ev.page, ev.start, ev.end, ev.quote):
         raise PDFError("Evidence does not match the original document.")
-    request = json.dumps({"pdf": base64.b64encode(data).decode("ascii"), "sha256": doc.sha256,
-                          "finding": finding.model_dump(mode="json"), "evidence": ev.model_dump(mode="json")}).encode()
+    payload = {"pdf": base64.b64encode(data).decode("ascii"), "sha256": doc.sha256,
+               "finding": finding.model_dump(mode="json"), "evidence": ev.model_dump(mode="json")}
+    if in_process():
+        from .extract_worker import evidence_png
+        try:
+            result = evidence_png(payload)
+            result["png"] = base64.b64decode(result["png"], validate=True)
+            return result
+        except Exception as exc:
+            raise PDFError("Evidence could not be rendered safely.") from exc
+    request = json.dumps(payload).encode()
     env = os.environ.copy()
     env["PYTHONIOENCODING"] = "utf-8"
     try:

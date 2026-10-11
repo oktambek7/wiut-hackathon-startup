@@ -9,3 +9,5 @@ models/
 *.zip
 test-results/
 .streamlit/secrets.toml
+dist_vercel/
+.vercel/

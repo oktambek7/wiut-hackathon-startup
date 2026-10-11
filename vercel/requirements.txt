@@ -1,0 +1,7 @@
+# Lightweight runtime for the Vercel function: keyword retrieval, no torch/model.
+# The E5 semantic model runs on a separate AI backend (POLISDIFF_AI_BACKEND_URL) or the Streamlit app.
+fastapi>=0.115,<1
+python-multipart>=0.0.20
+pydantic>=2.10,<3
+pymupdf>=1.25,<2
+requests>=2.32,<3
