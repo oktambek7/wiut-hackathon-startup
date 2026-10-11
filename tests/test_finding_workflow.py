@@ -1,3 +1,4 @@
+import re
 from datetime import date
 from html import unescape
 from pathlib import Path
@@ -215,7 +216,8 @@ def test_escaped_highlight_and_old_report_readability():
     marked=quote_html(ev,f)
     assert '<mark>60 000 000 сум</mark>' in marked
     assert '<script>' not in marked and '<img' not in marked
-    assert ev.quote == unescape(marked.replace('<mark>','').replace('</mark>',''))
+    assert '<mark class="ctx">страховая сумма</mark>' in marked  # subject highlighted next to the value
+    assert ev.quote == unescape(re.sub(r'<mark[^>]*>|</mark>', '', marked))
     assert finding_details(report,f)['draft'] is None
 
 

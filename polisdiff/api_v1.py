@@ -61,6 +61,19 @@ def _read(upload: UploadFile) -> bytes:
     return data
 
 
+def comparison(finding, details) -> dict | None:
+    """Offer value vs the dated legal value, only when the engine itself judged them comparable."""
+    if not details["comparable"] or finding.expected_value is None:
+        return None
+    offer, law = finding.evidence[0].extracted_value, finding.expected_value
+    amount = finding.rule_id == "OSAGO_SUM"
+    # Buyer's view: a smaller insured sum or a longer deadline is worse.
+    worse = offer < law if amount else offer > law
+    better = offer > law if amount else offer < law
+    return {"kind": "amount" if amount else "deadline", "offer": offer, "law": law, "unit": finding.evidence[0].unit,
+            "difference": abs(offer - law), "direction": "worse" if worse else "better" if better else "same"}
+
+
 def build_view(report: Report, language: str) -> dict:
     """Localized, plain verdict derived only from the engine's report."""
     status_labels = labels(STATUS_LABELS, language)
@@ -78,6 +91,7 @@ def build_view(report: Report, language: str) -> dict:
             "offer_says": observation(f, language), "law_says": expected(f, language), "meaning": d["reason"],
             "next_step": next_step(f, language), "verification": d["verification"], "remediation": d["remediation"],
             "can_complain": f.status == Status.POTENTIAL_CONFLICT and d["comparable"],
+            "comparison": comparison(f, d), "blockers": d["blockers"],
             "evidence": [{"passage_id": ev.passage_id, "page": ev.page, "section": ev.section,
                           "section_label": section_labels.get(ev.section, ev.section), "quote": ev.quote,
                           "quote_html": quote_html(ev, f)} for ev in f.evidence],
@@ -142,15 +156,19 @@ def checks(file: UploadFile = File(...), applicable_date: str = Form(""), langua
     except BusyError as exc:
         raise HTTPException(429, "BUSY") from exc
     view = build_view(report, language)
-    images, rendered = {}, time.perf_counter()
+    images, focus, highlight, rendered = {}, {}, {}, time.perf_counter()
     for f in report.findings:
         for ev in f.evidence[:IMAGES_PER_CHECK]:
             try:
-                images[ev.passage_id] = base64.b64encode(render_evidence(data, doc, f, ev)["png"]).decode("ascii")
+                result = render_evidence(data, doc, f, ev)
             except PDFError:
-                pass
+                continue
+            images[ev.passage_id] = base64.b64encode(result["png"]).decode("ascii")
+            highlight[ev.passage_id] = result["location"]["state"]
+            if result.get("focus"):
+                focus[ev.passage_id] = result["focus"]
     return {"view": view, "report": report.model_dump(mode="json"), "doc": _doc_info(doc, file.filename or "offer.pdf"),
-            "images": images, "engine": {"retrieval_used": report.retrieval_used, "ai_fallback": report.retrieval_requested != report.retrieval_used,
+            "images": images, "focus": focus, "highlight": highlight, "engine": {"retrieval_used": report.retrieval_used, "ai_fallback": report.retrieval_requested != report.retrieval_used,
             "analysis_seconds": round(report.timings_seconds.get("analysis", 0), 2), "render_seconds": round(time.perf_counter() - rendered, 2),
             "total_seconds": round(time.perf_counter() - started, 2)}, "suggested_dates": [d.isoformat() for d in doc.detected_dates]}
 

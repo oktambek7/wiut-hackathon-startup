@@ -71,3 +71,14 @@ def test_bad_pdf_and_cors():
     assert check(b"nope").status_code == 422
     r = client.options("/v1/checks", headers={"Origin": "https://x.example", "Access-Control-Request-Method": "POST"})
     assert r.headers.get("access-control-allow-origin") == "*"
+
+
+def test_comparison_focus_and_two_colour_quote():
+    body = check(applicable_date="2026-01-05").json()
+    pay = next(c for c in body["view"]["checks"] if c["rule_id"] == "OSAGO_PAYMENT")
+    assert pay["comparison"] == {"kind": "deadline", "offer": 9.0, "law": 5.0, "unit": "working_days", "difference": 4.0, "direction": "worse"}
+    ev = pay["evidence"][0]
+    assert "<mark>" in ev["quote_html"] and '<mark class="ctx">' in ev["quote_html"]
+    assert body["highlight"][ev["passage_id"]] == "precise" and ev["passage_id"] in body["focus"]
+    total = next(c for c in body["view"]["checks"] if c["rule_id"] == "OSAGO_SUM")
+    assert total["comparison"]["direction"] == "same"

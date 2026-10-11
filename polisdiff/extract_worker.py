@@ -21,7 +21,7 @@ def evidence_png(request: dict) -> dict:
     from dataclasses import asdict
     import pymupdf
     from .models import Finding, Evidence
-    from .localization import locate_on_page
+    from .localization import locate_context, locate_on_page
     data = base64.b64decode(request["pdf"], validate=True)
     validate_pdf(data)
     if hashlib.sha256(data).hexdigest() != request["sha256"]:
@@ -37,11 +37,22 @@ def evidence_png(request: dict) -> dict:
         location = locate_on_page(page, finding, ev)
         if location.state == "evidence_mismatch":
             raise ValueError("Evidence mismatch")
+        # Blue: the subject or the event a deadline counts from. Amber: the checked value.
+        context = locate_context(page, finding, ev) if location.state == "precise" else []
+        for box in context:
+            page.draw_rect(pymupdf.Rect(box), color=(.15, .45, .9), fill=(.35, .6, 1), fill_opacity=.22, width=.6, overlay=True)
         for box in location.rectangles:
-            page.draw_rect(pymupdf.Rect(box), color=None, fill=(1, .75, .15), fill_opacity=.3, overlay=True)
+            page.draw_rect(pymupdf.Rect(box), color=(.85, .55, 0), fill=(1, .75, .15), fill_opacity=.35, width=.8, overlay=True)
         scale = min(1.4, 1400/max(page.rect.width, page.rect.height))
         png = page.get_pixmap(matrix=pymupdf.Matrix(scale, scale), alpha=False).tobytes("png")
-        return {"location": asdict(location), "png": base64.b64encode(png).decode("ascii")}
+        focus = None
+        if location.rectangles:
+            # Close-up of the highlighted lines across the full page width, for reading on a phone.
+            boxes = [pymupdf.Rect(b) for b in location.rectangles + context]
+            top, bottom = min(b.y0 for b in boxes), max(b.y1 for b in boxes)
+            clip = pymupdf.Rect(page.rect.x0, max(page.rect.y0, top - 36), page.rect.x1, min(page.rect.y1, bottom + 36))
+            focus = base64.b64encode(page.get_pixmap(matrix=pymupdf.Matrix(2.2, 2.2), clip=clip, alpha=False).tobytes("png")).decode("ascii")
+        return {"location": asdict(location), "png": base64.b64encode(png).decode("ascii"), "focus": focus}
 
 
 def main():

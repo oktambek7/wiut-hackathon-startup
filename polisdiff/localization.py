@@ -64,18 +64,55 @@ def trigger_range(finding, ev):
     return offsets[a][0], offsets[b - 1][1]
 
 
+def context_range(finding, ev):
+    """Original span of the words that give the value its meaning: the insurance-sum subject or the
+    event a deadline counts from. Only shown when the value itself was revalidated."""
+    from .engine import load_catalogue, context_pattern
+    from .text import normalize
+    if trigger_range(finding, ev) is None:
+        return None
+    rule = next((r for r in load_catalogue()[1] if r.id == finding.rule_id), None)
+    original, offsets = canonical_map(ev.quote)
+    folded = original.casefold()
+    prefix = len(folded) - len(folded.lstrip())
+    if rule is None or normalize(ev.quote) != folded.strip():
+        return None
+    match = context_pattern(rule).search(folded.strip())
+    if match is None or match.end() <= match.start():
+        return None
+    a, b = prefix + match.start(), prefix + match.end()
+    return offsets[a][0], offsets[b - 1][1]
+
+
 def quote_html(ev, finding):
-    """Always escape source text; mark only a revalidated original substring."""
-    target = trigger_range(finding, ev)
-    if target is None:
+    """Always escape source text; mark only revalidated original substrings.
+    <mark> = the checked value; <mark class="ctx"> = its subject or trigger event."""
+    value = trigger_range(finding, ev)
+    if value is None:
         return escape(ev.quote)
-    a, b = target
-    return escape(ev.quote[:a]) + '<mark>' + escape(ev.quote[a:b]) + '</mark>' + escape(ev.quote[b:])
+    spans = [(value[0], value[1], "<mark>")]
+    context = context_range(finding, ev)
+    if context and (context[1] <= value[0] or context[0] >= value[1]):
+        spans.append((context[0], context[1], '<mark class="ctx">'))
+    out, cursor = [], 0
+    for a, b, tag in sorted(spans):
+        out += [escape(ev.quote[cursor:a]), tag, escape(ev.quote[a:b]), "</mark>"]
+        cursor = b
+    return "".join(out) + escape(ev.quote[cursor:])
 
 
-def locate_on_page(page, finding, ev):
+def locate_context(page, finding, ev):
+    """Rectangles for the subject/trigger words, using the same strict mapping as the value; [] if not precise."""
+    target = context_range(finding, ev)
+    if target is None:
+        return []
+    located = locate_on_page(page, finding, ev, target=target)
+    return located.rectangles if located.state == "precise" else []
+
+
+def locate_on_page(page, finding, ev, target=None):
     """Called inside the bounded PDF worker, on the selected page only."""
-    target = trigger_range(finding, ev)
+    target = target if target is not None else trigger_range(finding, ev)
     result = Localization("precise_unavailable", ev.quote)
     # Reconstruct precisely the extraction protocol, not PyMuPDF's sorted words
     # reading order (which can differ in columns/tables).

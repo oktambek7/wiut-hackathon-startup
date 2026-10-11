@@ -1,0 +1,84 @@
+{
+  "measured_at": "2026-10-11T06:50:46.519384+00:00",
+  "documents": 18,
+  "results": {
+    "lexical": {
+      "used": "lexical",
+      "median_seconds": 0.2787068999996336,
+      "max_seconds": 0.31276270000125805,
+      "all": {
+        "labels": 54,
+        "status_accuracy": 0.9814814814814815,
+        "conflict_precision": 1.0,
+        "conflict_recall": 1.0,
+        "precision_on_answered": 1.0,
+        "abstention": 0.09259259259259259
+      },
+      "en": {
+        "labels": 42,
+        "status_accuracy": 0.9761904761904762,
+        "conflict_precision": 1.0,
+        "conflict_recall": 1.0,
+        "precision_on_answered": 1.0,
+        "abstention": 0.11904761904761904
+      },
+      "mixed": {
+        "labels": 12,
+        "status_accuracy": 1.0,
+        "conflict_precision": 1.0,
+        "conflict_recall": 1.0,
+        "precision_on_answered": 1.0,
+        "abstention": 0.0
+      },
+      "errors": [
+        {
+          "doc": "en-a_wrong_trigger",
+          "group": "en",
+          "rule": "OSAGO_PAYMENT",
+          "expected": "UNVERIFIABLE",
+          "got": "NOT_FOUND",
+          "used": "lexical"
+        }
+      ]
+    },
+    "hybrid": {
+      "used": "hybrid",
+      "median_seconds": 0.6245958499994231,
+      "max_seconds": 0.8558367000005092,
+      "all": {
+        "labels": 54,
+        "status_accuracy": 0.9814814814814815,
+        "conflict_precision": 1.0,
+        "conflict_recall": 1.0,
+        "precision_on_answered": 1.0,
+        "abstention": 0.09259259259259259
+      },
+      "en": {
+        "labels": 42,
+        "status_accuracy": 0.9761904761904762,
+        "conflict_precision": 1.0,
+        "conflict_recall": 1.0,
+        "precision_on_answered": 1.0,
+        "abstention": 0.11904761904761904
+      },
+      "mixed": {
+        "labels": 12,
+        "status_accuracy": 1.0,
+        "conflict_precision": 1.0,
+        "conflict_recall": 1.0,
+        "precision_on_answered": 1.0,
+        "abstention": 0.0
+      },
+      "errors": [
+        {
+          "doc": "en-a_wrong_trigger",
+          "group": "en",
+          "rule": "OSAGO_PAYMENT",
+          "expected": "UNVERIFIABLE",
+          "got": "NOT_FOUND",
+          "used": "hybrid"
+        }
+      ]
+    }
+  }
+}

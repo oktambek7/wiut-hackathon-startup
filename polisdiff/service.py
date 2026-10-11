@@ -7,6 +7,12 @@ from .models import Report, Document
 from .retrieval import Retriever
 
 _ANALYSIS_GATE = threading.BoundedSemaphore(1)
+# English retrieval queries; the catalogue's own queries (ru, uz-Latn, uz-Cyrl) stay unchanged.
+EXTRA_QUERIES = {
+    "OSAGO_SUM": ["total insurance sum of compulsory motor liability insurance UZS"],
+    "OSAGO_PAYMENT": ["insurance compensation paid within five working days from the date of the insurer's decision"],
+    "OSAGO_DECISION_NOTICE": ["insurer notifies the policyholder of the decision on compensation within fifteen days after the written or electronic claim"],
+}
 
 
 class BusyError(RuntimeError):
@@ -32,7 +38,7 @@ def audit_document(doc: Document, audit_date: date, applicable_date: date | None
     for section in (offer, appendix):
         retriever.prepare(section)
         for rule in rules:
-            candidates[rule.id].extend(p for p, _ in retriever.search(rule.queries, k=k))
+            candidates[rule.id].extend(p for p, _ in retriever.search(rule.queries + EXTRA_QUERIES.get(rule.id, []), k=k))
     # Top-K ranking must not hide competing contractual terms elsewhere.
     # Expand evidence candidates; never assume their extracted values are valid.
     for rule in rules:

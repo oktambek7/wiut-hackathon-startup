@@ -21,8 +21,14 @@ def detect_languages(text: str) -> list[str]:
     uz_lat = bool(re.search(r"sug'ur|sugur|to'lov|tovon|shartnoma|qaror|kun|summa|so'm|majburiy", s))
     uz_cyr = bool(re.search(r"[ўқғҳ]|суғур|товон|кун|шартнома|қарор", s))
     ru = bool(re.search(r"страх|возмещ|решени|рабоч|уведом|дней|дня|руб|сум", s))
+    en = bool(re.search(r"\b(?:the|insurance|insurer|policyholder|compensation|payment|days|decision)\b", s))
     if has_lat:
-        labels.append("uz-Latn" if uz_lat else "Latin-undetermined")
+        if uz_lat:
+            labels.append("uz-Latn")
+        if en:
+            labels.append("en")
+        if not (uz_lat or en):
+            labels.append("Latin-undetermined")
     if has_cyr:
         if uz_cyr:
             labels.append("uz-Cyrl")

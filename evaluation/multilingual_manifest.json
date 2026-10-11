@@ -1,0 +1,308 @@
+[
+ {
+  "id": "en-a_match",
+  "path": "tests/fixtures/multilingual/en-a_match.pdf",
+  "sha256": "4b890c060abd175b0cbde99df781db2ba20e4dd63be704d8586274032f27532e",
+  "applicable_date": "2026-01-05",
+  "expected": {
+   "OSAGO_SUM": "MATCH_FOUND",
+   "OSAGO_PAYMENT": "MATCH_FOUND",
+   "OSAGO_DECISION_NOTICE": "MATCH_FOUND"
+  },
+  "split": "development_multilingual",
+  "terms": [
+   "The total insurance sum under this contract is 80,000,000 UZS.",
+   "Insurance compensation is paid within 5 working days from the date of the insurer's decision.",
+   "The insurer notifies the policyholder of the decision on compensation within 15 days after the written or electronic claim."
+  ]
+ },
+ {
+  "id": "en-a_sum_conflict",
+  "path": "tests/fixtures/multilingual/en-a_sum_conflict.pdf",
+  "sha256": "c5d9bc2f76c79eed289c06bf0094d170384bcd430f7fe6e397fa0406c08ace3e",
+  "applicable_date": "2026-01-05",
+  "expected": {
+   "OSAGO_SUM": "POTENTIAL_CONFLICT",
+   "OSAGO_PAYMENT": "MATCH_FOUND",
+   "OSAGO_DECISION_NOTICE": "MATCH_FOUND"
+  },
+  "split": "development_multilingual",
+  "terms": [
+   "The total insurance sum under this contract is 60,000,000 UZS.",
+   "Insurance compensation is paid within 5 working days from the date of the insurer's decision.",
+   "The insurer notifies the policyholder of the decision on compensation within 15 days after the written or electronic claim."
+  ]
+ },
+ {
+  "id": "en-a_payment_conflict",
+  "path": "tests/fixtures/multilingual/en-a_payment_conflict.pdf",
+  "sha256": "de3e805cf64ae86592a60555d4a856ab8bf7ddfcf65aa52bf26ecd50a33ba578",
+  "applicable_date": "2026-01-05",
+  "expected": {
+   "OSAGO_SUM": "MATCH_FOUND",
+   "OSAGO_PAYMENT": "POTENTIAL_CONFLICT",
+   "OSAGO_DECISION_NOTICE": "MATCH_FOUND"
+  },
+  "split": "development_multilingual",
+  "terms": [
+   "The total insurance sum under this contract is 80,000,000 UZS.",
+   "Insurance compensation is paid within 9 working days from the date of the insurer's decision.",
+   "The insurer notifies the policyholder of the decision on compensation within 15 days after the written or electronic claim."
+  ]
+ },
+ {
+  "id": "en-a_notice_conflict",
+  "path": "tests/fixtures/multilingual/en-a_notice_conflict.pdf",
+  "sha256": "4250cf28f7743a2fe3b64ac45dd322721e5d69f9ec0bbac00faefbadcc3c981e",
+  "applicable_date": "2026-01-05",
+  "expected": {
+   "OSAGO_SUM": "MATCH_FOUND",
+   "OSAGO_PAYMENT": "MATCH_FOUND",
+   "OSAGO_DECISION_NOTICE": "POTENTIAL_CONFLICT"
+  },
+  "split": "development_multilingual",
+  "terms": [
+   "The total insurance sum under this contract is 80,000,000 UZS.",
+   "Insurance compensation is paid within 5 working days from the date of the insurer's decision.",
+   "The insurer notifies the policyholder of the decision on compensation within 22 days after the written or electronic claim."
+  ]
+ },
+ {
+  "id": "en-a_omission",
+  "path": "tests/fixtures/multilingual/en-a_omission.pdf",
+  "sha256": "ca3ff83114065f761bd68543bce6df75b29fb0c70e6e221473e22060d48fa31b",
+  "applicable_date": "2026-01-05",
+  "expected": {
+   "OSAGO_SUM": "MATCH_FOUND",
+   "OSAGO_PAYMENT": "NOT_FOUND",
+   "OSAGO_DECISION_NOTICE": "MATCH_FOUND"
+  },
+  "split": "development_multilingual",
+  "terms": [
+   "The total insurance sum under this contract is 80,000,000 UZS.",
+   "This offer does not describe the payment timetable.",
+   "The insurer notifies the policyholder of the decision on compensation within 15 days after the written or electronic claim."
+  ]
+ },
+ {
+  "id": "en-b_match",
+  "path": "tests/fixtures/multilingual/en-b_match.pdf",
+  "sha256": "c1092ca3adb1f8921e2a4e2efeaa8b12757ba18bf8497f58cc330025f1df1290",
+  "applicable_date": "2026-01-05",
+  "expected": {
+   "OSAGO_SUM": "MATCH_FOUND",
+   "OSAGO_PAYMENT": "MATCH_FOUND",
+   "OSAGO_DECISION_NOTICE": "MATCH_FOUND"
+  },
+  "split": "development_multilingual",
+  "terms": [
+   "Sum insured (total): 80 million soums.",
+   "The insurer shall transfer the compensation within five business days after the insurer's payment decision.",
+   "The policyholder is informed of the insurer's decision on compensation no later than fifteen days after receipt of the written or electronic application."
+  ]
+ },
+ {
+  "id": "en-b_sum_conflict",
+  "path": "tests/fixtures/multilingual/en-b_sum_conflict.pdf",
+  "sha256": "4e2f669fc2761b7eba83f4355503d1ca6ec2c9d328f8cc660528049e6d5dee2d",
+  "applicable_date": "2026-01-05",
+  "expected": {
+   "OSAGO_SUM": "POTENTIAL_CONFLICT",
+   "OSAGO_PAYMENT": "MATCH_FOUND",
+   "OSAGO_DECISION_NOTICE": "MATCH_FOUND"
+  },
+  "split": "development_multilingual",
+  "terms": [
+   "Sum insured (total): 60 million soums.",
+   "The insurer shall transfer the compensation within five business days after the insurer's payment decision.",
+   "The policyholder is informed of the insurer's decision on compensation no later than fifteen days after receipt of the written or electronic application."
+  ]
+ },
+ {
+  "id": "en-b_payment_conflict",
+  "path": "tests/fixtures/multilingual/en-b_payment_conflict.pdf",
+  "sha256": "e0d2fd035e858f5d31a178586ec101737abf5856fdb8657b8a4ddb91d0dc6e7e",
+  "applicable_date": "2026-01-05",
+  "expected": {
+   "OSAGO_SUM": "MATCH_FOUND",
+   "OSAGO_PAYMENT": "POTENTIAL_CONFLICT",
+   "OSAGO_DECISION_NOTICE": "MATCH_FOUND"
+  },
+  "split": "development_multilingual",
+  "terms": [
+   "Sum insured (total): 80 million soums.",
+   "The insurer shall transfer the compensation within seven business days after the insurer's payment decision.",
+   "The policyholder is informed of the insurer's decision on compensation no later than fifteen days after receipt of the written or electronic application."
+  ]
+ },
+ {
+  "id": "en-b_notice_conflict",
+  "path": "tests/fixtures/multilingual/en-b_notice_conflict.pdf",
+  "sha256": "c12ac0f67a9099d19e77ca8bafac2c56f7e57c89bf2cc94c8b1f0f37ac90b307",
+  "applicable_date": "2026-01-05",
+  "expected": {
+   "OSAGO_SUM": "MATCH_FOUND",
+   "OSAGO_PAYMENT": "MATCH_FOUND",
+   "OSAGO_DECISION_NOTICE": "POTENTIAL_CONFLICT"
+  },
+  "split": "development_multilingual",
+  "terms": [
+   "Sum insured (total): 80 million soums.",
+   "The insurer shall transfer the compensation within five business days after the insurer's payment decision.",
+   "The policyholder is informed of the insurer's decision on compensation no later than 22 days after receipt of the written or electronic application."
+  ]
+ },
+ {
+  "id": "en-b_omission",
+  "path": "tests/fixtures/multilingual/en-b_omission.pdf",
+  "sha256": "6b61c666c44d7c06d5fae5d3a00217293b49f326c2f79baf72dd769e78db83cd",
+  "applicable_date": "2026-01-05",
+  "expected": {
+   "OSAGO_SUM": "MATCH_FOUND",
+   "OSAGO_PAYMENT": "NOT_FOUND",
+   "OSAGO_DECISION_NOTICE": "MATCH_FOUND"
+  },
+  "split": "development_multilingual",
+  "terms": [
+   "Sum insured (total): 80 million soums.",
+   "This offer does not describe the payment timetable.",
+   "The policyholder is informed of the insurer's decision on compensation no later than fifteen days after receipt of the written or electronic application."
+  ]
+ },
+ {
+  "id": "en-a_calendar_days",
+  "path": "tests/fixtures/multilingual/en-a_calendar_days.pdf",
+  "sha256": "62315a4693b9e3bbeab9717e91a39f30788d750125cc01f64fa66999462a4fec",
+  "applicable_date": "2026-01-05",
+  "expected": {
+   "OSAGO_SUM": "MATCH_FOUND",
+   "OSAGO_PAYMENT": "UNVERIFIABLE",
+   "OSAGO_DECISION_NOTICE": "MATCH_FOUND"
+  },
+  "split": "development_multilingual",
+  "terms": [
+   "The total insurance sum under this contract is 80,000,000 UZS.",
+   "Insurance compensation is paid within 5 calendar days from the date of the insurer's decision.",
+   "The insurer notifies the policyholder of the decision on compensation within 15 days after the written or electronic claim."
+  ]
+ },
+ {
+  "id": "en-a_wrong_trigger",
+  "path": "tests/fixtures/multilingual/en-a_wrong_trigger.pdf",
+  "sha256": "6bd1aa665c586a292a6a3251dd70565bb140c2a575d430b18b8c84dbd8885029",
+  "applicable_date": "2026-01-05",
+  "expected": {
+   "OSAGO_SUM": "MATCH_FOUND",
+   "OSAGO_PAYMENT": "UNVERIFIABLE",
+   "OSAGO_DECISION_NOTICE": "MATCH_FOUND"
+  },
+  "split": "development_multilingual",
+  "terms": [
+   "The total insurance sum under this contract is 80,000,000 UZS.",
+   "Insurance compensation is paid within 5 working days after the road accident.",
+   "The insurer notifies the policyholder of the decision on compensation within 15 days after the written or electronic claim."
+  ]
+ },
+ {
+  "id": "en-a_conditional",
+  "path": "tests/fixtures/multilingual/en-a_conditional.pdf",
+  "sha256": "6d042dea3d062af08adcb03db108b07490fddc310698365a731ea37a334bbe99",
+  "applicable_date": "2026-01-05",
+  "expected": {
+   "OSAGO_SUM": "MATCH_FOUND",
+   "OSAGO_PAYMENT": "UNVERIFIABLE",
+   "OSAGO_DECISION_NOTICE": "MATCH_FOUND"
+  },
+  "split": "development_multilingual",
+  "terms": [
+   "The total insurance sum under this contract is 80,000,000 UZS.",
+   "If all documents are complete, insurance compensation is paid within 5 working days from the date of the insurer's decision.",
+   "The insurer notifies the policyholder of the decision on compensation within 15 days after the written or electronic claim."
+  ]
+ },
+ {
+  "id": "en-a_unknown_date",
+  "path": "tests/fixtures/multilingual/en-a_unknown_date.pdf",
+  "sha256": "4b890c060abd175b0cbde99df781db2ba20e4dd63be704d8586274032f27532e",
+  "applicable_date": null,
+  "expected": {
+   "OSAGO_SUM": "UNVERIFIABLE",
+   "OSAGO_PAYMENT": "UNVERIFIABLE",
+   "OSAGO_DECISION_NOTICE": "UNVERIFIABLE"
+  },
+  "split": "development_multilingual",
+  "terms": [
+   "The total insurance sum under this contract is 80,000,000 UZS.",
+   "Insurance compensation is paid within 5 working days from the date of the insurer's decision.",
+   "The insurer notifies the policyholder of the decision on compensation within 15 days after the written or electronic claim."
+  ]
+ },
+ {
+  "id": "mixed_en-ru-uzLatn_match",
+  "path": "tests/fixtures/multilingual/mixed_en-ru-uzLatn_match.pdf",
+  "sha256": "226d9f61c3052b610a097fd28cbb40d25ec88d726818ed559562aa2ddf82edfb",
+  "applicable_date": "2026-01-05",
+  "expected": {
+   "OSAGO_SUM": "MATCH_FOUND",
+   "OSAGO_PAYMENT": "MATCH_FOUND",
+   "OSAGO_DECISION_NOTICE": "MATCH_FOUND"
+  },
+  "split": "development_multilingual",
+  "terms": [
+   "The total insurance sum under this contract is 80,000,000 UZS.",
+   "Выплата страхового возмещения производится в течение 5 рабочих дней с момента принятия решения страховщика.",
+   "Sug‘urta tovoni haqida qaror sug‘urta qildiruvchiga uning yozma yoki elektron murojaatidan so‘ng 15 kun ichida xabar qilinadi."
+  ]
+ },
+ {
+  "id": "mixed_uzCyrl-en-ru_payment_conflict",
+  "path": "tests/fixtures/multilingual/mixed_uzCyrl-en-ru_payment_conflict.pdf",
+  "sha256": "92ad3fd9c7cb72d1568da88adcfd4832a52b0d1cf1161886d300134d7692c04e",
+  "applicable_date": "2026-01-05",
+  "expected": {
+   "OSAGO_SUM": "MATCH_FOUND",
+   "OSAGO_PAYMENT": "POTENTIAL_CONFLICT",
+   "OSAGO_DECISION_NOTICE": "MATCH_FOUND"
+  },
+  "split": "development_multilingual",
+  "terms": [
+   "Мажбурий суғурта суммаси шартнома бўйича 80.000.000 сўм этиб белгиланади.",
+   "Insurance compensation is paid within 9 working days from the date of the insurer's decision.",
+   "О решении по страховому возмещению страхователю сообщают не позднее 15 дней после его письменного или электронного обращения."
+  ]
+ },
+ {
+  "id": "mixed_ru-uzCyrl-en_notice_conflict",
+  "path": "tests/fixtures/multilingual/mixed_ru-uzCyrl-en_notice_conflict.pdf",
+  "sha256": "53e4b0fcd117bdca8256400d90c59e1450a779c249728b0ce8201b5758b2daf1",
+  "applicable_date": "2026-01-05",
+  "expected": {
+   "OSAGO_SUM": "MATCH_FOUND",
+   "OSAGO_PAYMENT": "MATCH_FOUND",
+   "OSAGO_DECISION_NOTICE": "POTENTIAL_CONFLICT"
+  },
+  "split": "development_multilingual",
+  "terms": [
+   "Общая страховая сумма по договору установлена в размере 80,000,000 сум.",
+   "Суғурта товонини тўлаш суғурталовчининг қарори қабул қилинган кундан 5 иш куни ичида амалга оширилади.",
+   "The policyholder is informed of the insurer's decision on compensation no later than 22 days after receipt of the written or electronic application."
+  ]
+ },
+ {
+  "id": "mixed_uzLatn-en-uzCyrl_sum_conflict",
+  "path": "tests/fixtures/multilingual/mixed_uzLatn-en-uzCyrl_sum_conflict.pdf",
+  "sha256": "dcb931baff97bd06b952adc705cb7417675cfe2ff0458410343b825e44a58784",
+  "applicable_date": "2026-01-05",
+  "expected": {
+   "OSAGO_SUM": "POTENTIAL_CONFLICT",
+   "OSAGO_PAYMENT": "MATCH_FOUND",
+   "OSAGO_DECISION_NOTICE": "MATCH_FOUND"
+  },
+  "split": "development_multilingual",
+  "terms": [
+   "Majburiy sugʻurta summasi shartnoma bo‘yicha 60 000 000 so‘m etib belgilanadi.",
+   "The insurer shall transfer the compensation within five business days after the insurer's payment decision.",
+   "Суғурта товони ҳақида қарор суғурта қилдирувчига унинг ёзма ёки электрон мурожаатидан сўнг 15 кун ичида хабар қилинади."
+  ]
+ }
+]
