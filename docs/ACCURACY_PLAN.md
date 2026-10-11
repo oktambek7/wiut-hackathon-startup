@@ -115,3 +115,18 @@ Output per check is a **comparison**, not a flag: *offer value, law value, diffe
 2. A phone photo of an offer in each of the four languages is read, checked and highlighted, or refused with a reason.
 3. Every verdict shows offer quote, law quote, difference, confidence, and a highlighted page image.
 4. Two judges unfamiliar with the project can explain the verdict of a sample after one minute on the screen.
+
+## 11. Progress (2026-10-11)
+
+Done and deployed:
+- English vocabulary (sum, deadlines, trigger events, conditions, ranges) and mixed-language documents;
+  18 English/mixed synthetic fixtures, `tests/test_multilingual.py`, measured in
+  [MULTILINGUAL_RESULTS.md](../evaluation/MULTILINGUAL_RESULTS.md) (development data, not a blind estimate).
+- Two-colour evidence: value (amber) and subject/trigger (blue) in quotes and on the page image,
+  plus a close-up crop of the paragraph; legend and close-up/full-page toggle in the web app.
+- Offer-vs-law comparison (offer value, legal value, difference, direction) with a one-sentence verdict.
+- Hybrid AI retrieval verified locally with the pinned E5 model (all 582 tests pass, including the real-model tests);
+  the public Vercel API still runs keyword retrieval only.
+
+Not done: OCR, second extraction route (local model proposals), new legal rules, blind test set,
+native-speaker review, annotated-PDF export, shared audit log, public model host.
