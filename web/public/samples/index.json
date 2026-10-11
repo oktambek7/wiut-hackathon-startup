@@ -40,5 +40,26 @@
   "case": "omission",
   "language": "ru-Cyrl",
   "applicable_date": "2026-01-05"
+ },
+ {
+  "id": "en-a_payment_conflict",
+  "file": "/samples/en-a_payment_conflict.pdf",
+  "case": "payment_conflict",
+  "language": "en",
+  "applicable_date": "2026-01-05"
+ },
+ {
+  "id": "en-b_match",
+  "file": "/samples/en-b_match.pdf",
+  "case": "match",
+  "language": "en",
+  "applicable_date": "2026-01-05"
+ },
+ {
+  "id": "mixed_uzCyrl-en-ru_payment_conflict",
+  "file": "/samples/mixed_uzCyrl-en-ru_payment_conflict.pdf",
+  "case": "payment_conflict",
+  "language": "mixed",
+  "applicable_date": "2026-01-05"
  }
 ]

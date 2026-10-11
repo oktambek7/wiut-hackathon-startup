@@ -47,11 +47,15 @@ def evidence_png(request: dict) -> dict:
         png = page.get_pixmap(matrix=pymupdf.Matrix(scale, scale), alpha=False).tobytes("png")
         focus = None
         if location.rectangles:
-            # Close-up of the highlighted lines across the full page width, for reading on a phone.
+            # Close-up of the highlighted lines (with surrounding text), readable on a phone.
             boxes = [pymupdf.Rect(b) for b in location.rectangles + context]
-            top, bottom = min(b.y0 for b in boxes), max(b.y1 for b in boxes)
-            clip = pymupdf.Rect(page.rect.x0, max(page.rect.y0, top - 36), page.rect.x1, min(page.rect.y1, bottom + 36))
-            focus = base64.b64encode(page.get_pixmap(matrix=pymupdf.Matrix(2.2, 2.2), clip=clip, alpha=False).tobytes("png")).decode("ascii")
+            line = pymupdf.Rect(min(b.x0 for b in boxes), min(b.y0 for b in boxes), max(b.x1 for b in boxes), max(b.y1 for b in boxes))
+            for block in page.get_text("blocks"):
+                if pymupdf.Rect(block[:4]).intersects(line):
+                    line |= pymupdf.Rect(block[:4])  # whole paragraph that contains the evidence
+            clip = (line + (-18, -18, 18, 18)) & page.rect
+            zoom = min(3.0, 1100 / max(clip.width, 1))
+            focus = base64.b64encode(page.get_pixmap(matrix=pymupdf.Matrix(zoom, zoom), clip=clip, alpha=False).tobytes("png")).decode("ascii")
         return {"location": asdict(location), "png": base64.b64encode(png).decode("ascii"), "focus": focus}
 
 

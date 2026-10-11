@@ -36,7 +36,8 @@ export default function UploadCard({ maxBytes, busy, stage, onRun }: Props) {
     setFile(f); setDate(s.applicable_date); setProblem(null);
     onRun(f, s.applicable_date);
   }
-  const shown = samples.filter((s) => CASES.includes(s.case) && (s.id.startsWith("ru-Cyrl_") || s.id === "uz-Latn_payment_conflict"));
+  const shown = samples.filter((s) => CASES.includes(s.case));
+  const prefix: Record<string, Key> = { "uz-Latn": "sample.uz", en: "sample.en", mixed: "sample.mixed" };
 
   return (
     <Card className="space-y-5">
@@ -78,7 +79,7 @@ export default function UploadCard({ maxBytes, busy, stage, onRun }: Props) {
             {shown.map((s) => (
               <button key={s.id} type="button" disabled={busy} onClick={() => useSample(s)}
                 className="min-h-10 rounded-full border border-line bg-surface px-3 text-sm hover:border-brand disabled:opacity-50">
-                {s.language === "uz-Latn" ? `${t("sample.uz")} · ` : ""}{t(`sample.${s.case}` as Key)}
+                {prefix[s.language] ? `${t(prefix[s.language])} · ` : ""}{t(`sample.${s.case}` as Key)}
               </button>
             ))}
           </div>

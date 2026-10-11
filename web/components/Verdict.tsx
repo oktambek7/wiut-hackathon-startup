@@ -51,7 +51,7 @@ export default function Verdict({ data, view, file }: Props) {
           ))}
         </ol>
         <div ref={panel} className="lg:sticky lg:top-24 lg:self-start">
-          {current && <EvidencePanel key={current.rule_id} check={current} images={data.images} file={file} engine={data.engine} />}
+          {current && <EvidencePanel key={current.rule_id} check={current} images={data.images} focus={data.focus ?? {}} file={file} engine={data.engine} />}
         </div>
       </div>
       <LetterDialog open={letterFor !== null} onClose={() => setLetterFor(null)} request={request} />
@@ -67,18 +67,50 @@ function CheckCard({ check: c, active, onShow, onComplain }: { check: Check; act
         <h2 className="text-lg font-bold">{c.name}</h2>
         <Badge level={c.level}><span aria-hidden>{c.icon}</span>{c.status_label}</Badge>
       </div>
+      {c.comparison ? <Comparison cmp={c.comparison} /> : (
+        <dl className="mt-3 space-y-3">
+          <Row term={t("check.offer")} text={c.offer_says} />
+          <Row term={t("check.law")} text={c.law_says} />
+        </dl>
+      )}
       <dl className="mt-3 space-y-3">
-        <Row term={t("check.offer")} text={c.offer_says} />
-        <Row term={t("check.law")} text={c.law_says} />
         <Row term={t("check.meaning")} text={c.meaning} />
         <Row term={t("check.next")} text={c.next_step} />
       </dl>
+      {c.blockers.length > 0 && (
+        <div className="mt-3 rounded-xl bg-unk-bg p-3 text-sm">
+          <p className="font-semibold">{t("check.blockers")}</p>
+          <ul className="mt-1 list-disc pl-5">{c.blockers.map((b) => <li key={b}>{b}</li>)}</ul>
+        </div>
+      )}
       <div className="no-print mt-4 flex flex-wrap gap-2">
         {c.evidence.length > 0 && <Button variant={active ? "secondary" : "primary"} onClick={onShow} aria-pressed={active}>{t("check.show", { page: c.evidence[0].page })}</Button>}
         {c.can_complain && <Button variant="primary" onClick={onComplain}>{t("check.complaint")}</Button>}
         {c.evidence.length === 0 && <Button variant="ghost" onClick={onShow}>{t("check.source")}</Button>}
       </div>
     </article>
+  );
+}
+
+function Comparison({ cmp }: { cmp: NonNullable<Check["comparison"]> }) {
+  const { t, lang } = useLang();
+  const locale = lang === "ru" ? "ru-RU" : lang === "en" ? "en-GB" : "uz-UZ";
+  const unit = cmp.unit === "UZS" ? t("unit.UZS") : cmp.unit === "working_days" ? t("unit.working_days") : t("unit.days");
+  const n = (v: number) => `${v.toLocaleString(locale)} ${unit}`;
+  const tone = cmp.direction === "worse" ? "bg-attn-bg text-attn" : cmp.direction === "better" ? "bg-miss-bg text-miss" : "bg-ok-bg text-ok";
+  const sentence = t(`cmp.${cmp.kind}.${cmp.direction}` as Key, { offer: n(cmp.offer), law: n(cmp.law), diff: n(cmp.difference) });
+  return (
+    <div className="mt-3 space-y-2">
+      <p className={`rounded-xl px-3 py-2 font-semibold ${tone}`}>{sentence}</p>
+      <dl className="grid grid-cols-3 gap-2 text-center">
+        {([["cmp.offer", n(cmp.offer)], ["cmp.law", n(cmp.law)], ["cmp.diff", cmp.difference ? n(cmp.difference) : "0"]] as const).map(([k, v]) => (
+          <div key={k} className="rounded-xl border border-line bg-surface-2 p-2">
+            <dt className="text-xs font-semibold uppercase tracking-wide text-muted">{t(k)}</dt>
+            <dd className="font-bold">{v}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
   );
 }
 
@@ -91,12 +123,14 @@ function Row({ term, text }: { term: string; text: string }) {
   );
 }
 
-function EvidencePanel({ check, images, file, engine }: { check: Check; images: Record<string, string>; file: File | null; engine: CheckResponse["engine"] }) {
+function EvidencePanel({ check, images, focus, file, engine }: { check: Check; images: Record<string, string>; focus: Record<string, string>; file: File | null; engine: CheckResponse["engine"] }) {
   const { t } = useLang();
   const [index, setIndex] = useState(0);
+  const [full, setFull] = useState(false);
   const [lazy, setLazy] = useState<Record<number, string>>({});
   const ev = check.evidence[index];
-  const image = ev ? images[ev.passage_id] ?? lazy[ev.page] : undefined;
+  const closeUp = ev ? focus[ev.passage_id] : undefined;
+  const image = ev ? (!full && closeUp) || images[ev.passage_id] || lazy[ev.page] : undefined;
 
   useEffect(() => {
     if (!ev || image || !file) return;
@@ -122,6 +156,18 @@ function EvidencePanel({ check, images, file, engine }: { check: Check; images: 
         <>
           <p className="text-sm text-muted">{ev.section_label} · p. {ev.page}</p>
           <blockquote className="whitespace-pre-wrap break-words rounded-r-xl border-l-4 border-brand bg-surface-2 p-3" dangerouslySetInnerHTML={{ __html: ev.quote_html }} />
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+            <span className="flex items-center gap-1.5"><span aria-hidden className="inline-block size-3 rounded-sm bg-[#ffe08a] ring-1 ring-[#d98c00]" />{t("legend.value")}</span>
+            <span className="flex items-center gap-1.5"><span aria-hidden className="inline-block size-3 rounded-sm bg-[#cfe2ff] ring-1 ring-[#2673e6]" />{t("legend.context")}</span>
+            {closeUp && (
+              <span className="ml-auto inline-flex rounded-lg border border-line p-0.5" role="group">
+                {([false, true] as const).map((f) => (
+                  <button key={String(f)} type="button" aria-pressed={full === f} onClick={() => setFull(f)}
+                    className={`min-h-9 rounded-md px-3 ${full === f ? "bg-brand text-brand-ink" : ""}`}>{t(f ? "ev.full" : "ev.focus")}</button>
+                ))}
+              </span>
+            )}
+          </div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           {image && <img alt={`p. ${ev.page}`} src={`data:image/png;base64,${image}`} className="w-full rounded-xl border border-line bg-white" />}
         </>
