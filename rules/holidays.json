@@ -1,0 +1,31 @@
+{
+  "version": "1.0.0",
+  "note": "Working-day calendar for the claim-deadline calculator: five-day week (Mon-Fri) minus the fixed public holidays and the dated transfers below. Only dated entries with a cited source are included; moving holidays that were not verified are NOT guessed and are listed under unverified_periods.",
+  "weekend_days": [5, 6],
+  "fixed_holidays": [
+    ["01-01", "New Year", "https://president.uz/ru/lists/view/7976"],
+    ["03-08", "International Women's Day", "https://president.uz/ru/lists/view/7976"],
+    ["03-21", "Navruz", "https://president.uz/ru/lists/view/7976"],
+    ["05-09", "Day of Remembrance and Honor", "https://president.uz/ru/lists/view/7976"],
+    ["09-01", "Independence Day", "https://president.uz/ru/lists/view/7976"],
+    ["10-01", "Teachers' Day", "https://president.uz/ru/lists/view/7976"],
+    ["12-08", "Constitution Day", "https://president.uz/ru/lists/view/7976"]
+  ],
+  "dated_non_working_days": [
+    {"date": "2025-03-31", "name": "Transfer of the weekend after Ramadan Hayit (30 March, Sunday)", "source": "https://president.uz/ru/lists/view/7976"},
+    {"date": "2025-12-31", "name": "Additional non-working day for all employees", "source": "https://president.uz/ru/lists/view/7976"},
+    {"date": "2026-01-02", "name": "Additional non-working day after New Year", "source": "https://yep.uz/en/2025/12/additional-non-working-days-uzbekistan-2026/"},
+    {"date": "2026-03-09", "name": "Transfer for Women's Day (8 March, Sunday)", "source": "https://buxgalter.uz/ru/publish/doc/text212631_kakie_dopolnitelnye_vyhodnye_i_perenosy_nas_ojidayut_v_2026_godu"},
+    {"date": "2026-03-23", "name": "Transfer for Navruz (21 March, Saturday)", "source": "https://buxgalter.uz/ru/publish/doc/text212631_kakie_dopolnitelnye_vyhodnye_i_perenosy_nas_ojidayut_v_2026_godu"},
+    {"date": "2026-05-11", "name": "Transfer for 9 May (Saturday)", "source": "https://buxgalter.uz/ru/publish/doc/text212631_kakie_dopolnitelnye_vyhodnye_i_perenosy_nas_ojidayut_v_2026_godu"},
+    {"date": "2026-05-27", "name": "Qurbon Hayit (first day)", "source": "https://kun.uz/en/news/2026/05/21/uzbekistan-to-celebrate-eid-al-adha-on-may-27"},
+    {"date": "2026-05-28", "name": "Additional day off for Qurbon Hayit", "source": "https://kun.uz/en/news/2026/05/21/uzbekistan-to-celebrate-eid-al-adha-on-may-27"},
+    {"date": "2026-05-29", "name": "Additional day off for Qurbon Hayit", "source": "https://kun.uz/en/news/2026/05/21/uzbekistan-to-celebrate-eid-al-adha-on-may-27"},
+    {"date": "2026-08-31", "name": "Additional non-working day before Independence Day", "source": "https://yep.uz/en/2025/12/additional-non-working-days-uzbekistan-2026/"}
+  ],
+  "unverified_periods": [
+    {"from": "2024-08-05", "to": "2025-12-30", "text": "Qurbon Hayit 2025 and 2024-2025 transfers other than those listed were not verified."},
+    {"from": "2026-03-20", "to": "2026-03-20", "text": "Ramadan Hayit 2026 (reported 20 March) and any extra days were not verified."},
+    {"from": "2026-09-01", "to": "2026-12-31", "text": "Decrees for late 2026 were not checked; verify before relying on dates."}
+  ]
+}
