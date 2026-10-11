@@ -7,12 +7,13 @@ import { Button, Card, Field, inputClass } from "./ui";
 import { mbOf } from "@/lib/util";
 
 interface Props {
-  maxBytes: number; busy: boolean; stage: number;
+  maxBytes: number; busy: boolean; stage: number; detail?: string;
+  ai: boolean; onAi: (on: boolean) => void;
   onRun: (file: File, date: string) => void;
 }
 const CASES = ["match", "sum_conflict", "payment_conflict", "notice_conflict", "omission"];
 
-export default function UploadCard({ maxBytes, busy, stage, onRun }: Props) {
+export default function UploadCard({ maxBytes, busy, stage, detail, ai, onAi, onRun }: Props) {
   const { t } = useLang();
   const input = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -59,6 +60,15 @@ export default function UploadCard({ maxBytes, busy, stage, onRun }: Props) {
         <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={inputClass} />
       </Field>
 
+      <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-line bg-surface-2 p-3">
+        <input type="checkbox" checked={ai} onChange={(e) => onAi(e.target.checked)} disabled={busy}
+          className="mt-1 size-5 accent-[var(--color-brand)]" />
+        <span>
+          <span className="font-semibold">{t("ai.toggle")}</span>
+          <span className="block text-sm text-muted">{t("ai.hint")}</span>
+        </span>
+      </label>
+
       <div className="flex flex-wrap items-center gap-3">
         <Button variant="primary" disabled={!file || busy} onClick={() => file && onRun(file, date)} className="flex-1 sm:min-w-56 sm:flex-none">
           {busy ? t("btn.checking") : t("btn.check")}
@@ -71,6 +81,7 @@ export default function UploadCard({ maxBytes, busy, stage, onRun }: Props) {
           </ol>
         )}
       </div>
+      {busy && detail && <p className="text-sm font-medium text-brand" aria-live="polite">{detail}</p>}
 
       {shown.length > 0 && (
         <div>

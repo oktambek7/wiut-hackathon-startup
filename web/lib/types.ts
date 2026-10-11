@@ -23,4 +23,6 @@ export interface Step {
 export interface Clock { catalogue_version: string; steps: Step[]; caveats: string[]; week: string }
 export interface Letter { kind: string; text: string; note: string; unreviewed: boolean }
 export interface Catalogue { version: string; sha256: string; supported_date_range: [string, string]; max_upload_bytes: number; rules: { id: string; reference: string; source_url: string }[] }
+export interface PlanAction { priority: "high" | "medium" | "low"; kind: "letter" | "ask" | "review" | "keep" | "date" | "deadlines" | "report"; rule_id: string | null; title: string; detail: string }
+export interface Plan { source: "rules" | "ai"; model: string | null; summary: string; actions: PlanAction[] }
 export interface Sample { id: string; file: string; case: string; language: string; applicable_date: string }

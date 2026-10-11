@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import * as api from "@/lib/api";
 import { useLang } from "@/lib/lang";
 import type { Key } from "@/lib/messages";
-import type { Check, CheckResponse, View } from "@/lib/types";
+import type { Check, CheckResponse, Plan, PlanAction, View } from "@/lib/types";
 import { download } from "@/lib/util";
 import { Badge, Button, Card, LEVEL_BORDER } from "./ui";
 import LetterDialog from "./LetterDialog";
@@ -32,6 +32,7 @@ export default function Verdict({ data, view, file }: Props) {
           <span className="text-sm text-muted">{data.doc.name} · {data.doc.pages} p.</span>
         </div>
         <p className="text-lg">{view.headline}</p>
+        <EngineChip data={data} />
         {data.doc.unreadable_pages.length > 0 && <p className="rounded-xl bg-miss-bg px-3 py-2 text-miss">{view.warnings.find((w) => data.doc.unreadable_pages.some((n) => w.includes(String(n)))) ?? ""}</p>}
         <div className="no-print flex flex-wrap gap-2">
           <Link href="/deadlines" className="inline-flex min-h-11 items-center rounded-xl bg-brand px-4 text-sm font-semibold text-brand-ink">{t("act.deadlines")}</Link>
@@ -54,8 +55,72 @@ export default function Verdict({ data, view, file }: Props) {
           {current && <EvidencePanel key={current.rule_id} check={current} images={data.images} focus={data.focus ?? {}} file={file} engine={data.engine} />}
         </div>
       </div>
+      <ActionPlan report={data.report} onLetter={setLetterFor} onHtml={html}
+        onShow={(rule) => { setSelected(rule); panel.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }); }} />
       <LetterDialog open={letterFor !== null} onClose={() => setLetterFor(null)} request={request} />
     </div>
+  );
+}
+
+function EngineChip({ data }: { data: CheckResponse }) {
+  const { t } = useLang();
+  const revision = String((data.report as { model_revision?: string | null }).model_revision ?? "");
+  const ai = data.engine.retrieval_used !== "lexical";
+  const label = !ai ? t("engine.kw") : revision.startsWith("browser:") ? t("engine.ai") : t("engine.server");
+  return (
+    <p className="flex flex-wrap items-center gap-2 text-sm">
+      <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-semibold ${ai ? "bg-brand-soft text-brand" : "bg-unk-bg text-unk"}`}>
+        <span aria-hidden>{ai ? "✦" : "⌕"}</span>{label}
+      </span>
+      <span className="text-muted">{data.engine.total_seconds}s</span>
+    </p>
+  );
+}
+
+const PRIORITY_LEVEL = { high: "attention", medium: "missing", low: "ok" } as const;
+
+function ActionPlan({ report, onLetter, onHtml, onShow }: { report: Record<string, unknown>; onLetter: (rule: string) => void; onHtml: () => void; onShow: (rule: string) => void }) {
+  const { t, lang } = useLang();
+  const [plan, setPlan] = useState<Plan | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    api.advice(report, lang).then((p) => { if (!cancelled) setPlan(p); }).catch(() => undefined);
+    return () => { cancelled = true; };
+  }, [report, lang]);
+  if (!plan) return <Card><p className="animate-pulse text-muted">{t("plan.title")}…</p></Card>;
+
+  function act(a: PlanAction) {
+    if (a.kind === "letter" && a.rule_id) return <Button variant="primary" onClick={() => onLetter(a.rule_id!)}>{t("plan.do.letter")}</Button>;
+    if (a.kind === "deadlines") return <Link href="/deadlines" className="inline-flex min-h-11 items-center rounded-xl border border-line px-4 text-sm font-semibold hover:bg-surface-2">{t("plan.do.deadlines")}</Link>;
+    if (a.kind === "date") return <Button onClick={() => document.getElementById("date-gate")?.scrollIntoView({ behavior: "smooth" })}>{t("plan.do.date")}</Button>;
+    if (a.kind === "report") return <Button onClick={onHtml}>{t("plan.do.report")}</Button>;
+    if ((a.kind === "ask" || a.kind === "review") && a.rule_id) return <Button variant="ghost" onClick={() => onShow(a.rule_id!)}>{t(`plan.do.${a.kind}`)}</Button>;
+    return null;
+  }
+
+  return (
+    <Card className="space-y-4">
+      <div>
+        <h2 className="text-xl font-bold">{t("plan.title")}</h2>
+        <p className="mt-1 text-lg">{plan.summary}</p>
+        <p className="mt-1 text-sm text-muted">{plan.source === "ai" ? t("plan.ai", { model: plan.model ?? "AI" }) : t("plan.rules")}</p>
+      </div>
+      <ol className="space-y-3">
+        {plan.actions.map((a, i) => (
+          <li key={`${a.kind}-${a.rule_id ?? i}`} className="flex flex-col gap-3 rounded-xl border border-line p-4 sm:flex-row sm:items-start">
+            <span className="grid size-8 shrink-0 place-items-center rounded-full bg-brand-soft font-bold text-brand">{i + 1}</span>
+            <div className="flex-1 space-y-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <strong>{a.title}</strong>
+                <Badge level={PRIORITY_LEVEL[a.priority]}>{t(`plan.${a.priority}`)}</Badge>
+              </div>
+              <p className="text-muted">{a.detail}</p>
+            </div>
+            <div className="no-print shrink-0">{act(a)}</div>
+          </li>
+        ))}
+      </ol>
+    </Card>
   );
 }
 

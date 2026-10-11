@@ -1,4 +1,4 @@
-import type { Catalogue, CheckResponse, Clock, Lang, Letter, View } from "./types";
+import type { Catalogue, CheckResponse, Clock, Lang, Letter, Plan, View } from "./types";
 
 export const API = (process.env.NEXT_PUBLIC_API_URL ?? "https://polisdiff-ai.vercel.app/api").replace(/\/$/, "");
 
@@ -19,11 +19,18 @@ async function call<T>(path: string, init?: RequestInit): Promise<T> {
 const json = (body: unknown): RequestInit => ({ method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
 
 export const catalogue = () => call<Catalogue>("/catalogue");
-export function check(file: File, language: Lang, applicableDate: string, mode = "hybrid") {
+export function check(file: File, language: Lang, applicableDate: string, mode = "hybrid",
+                      browser?: { ranking: Record<string, string[]>; model: string }) {
   const form = new FormData();
   form.append("file", file); form.append("language", language); form.append("applicable_date", applicableDate); form.append("mode", mode);
+  if (browser) { form.append("browser_ranking", JSON.stringify(browser.ranking)); form.append("browser_model", browser.model); }
   return call<CheckResponse>("/checks", { method: "POST", body: form });
 }
+export function passages(file: File) {
+  const form = new FormData(); form.append("file", file);
+  return call<{ sha256: string; passages: { id: string; text: string; section: string }[]; queries: Record<string, string[]> }>("/passages", { method: "POST", body: form });
+}
+export const advice = (report: unknown, language: Lang) => call<Plan>("/advice", json({ report, language }));
 export const localize = (report: unknown, language: Lang) => call<View>("/localize", json({ report, language }));
 export function page(file: File, number: number) {
   const form = new FormData(); form.append("file", file); form.append("number", String(number));

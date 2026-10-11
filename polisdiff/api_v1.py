@@ -5,9 +5,12 @@ POST /v1/localize     report + language -> the same verdict text in another lang
 POST /v1/pages        PDF + page number -> page image
 POST /v1/deadlines    claim/decision dates -> legal deadlines with rule, source and holiday notes
 POST /v1/letters      confirmed conflict or missed deadline -> deterministic letter draft
+POST /v1/passages     PDF -> passages + rule queries, for AI ranking in the browser
+POST /v1/advice       report -> prioritised action plan built from the verified findings
 GET  /v1/catalogue    rules, versions and sources;  GET /v1/health
 """
 import base64
+import json
 import os
 import time
 from datetime import date
@@ -16,11 +19,13 @@ from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
+from .advice import action_plan
+from .client_ranking import ClientRankedRetriever, rule_queries
 from .deadlines import claim_clock
 from .deployment import model_files_status
 from .engine import load_catalogue
 from .export import html_report
-from .extraction import MAX_BYTES, PDFError, render_evidence, render_page
+from .extraction import MAX_BYTES, PDFError, extract_pdf, render_evidence, render_page
 from .i18n import LANGUAGES, TRANSLATIONS, tr, warning_text
 from .letters import deadline_letter, offer_conflict_letter
 from .localization import quote_html
@@ -132,14 +137,26 @@ def i18n(language: str):
 
 
 @router.post("/checks")
-def checks(file: UploadFile = File(...), applicable_date: str = Form(""), language: str = Form("ru"), mode: str = Form("hybrid")):
+def checks(file: UploadFile = File(...), applicable_date: str = Form(""), language: str = Form("ru"), mode: str = Form("hybrid"),
+           browser_ranking: str = Form(""), browser_model: str = Form("")):
     language = _lang(language)
     if mode not in {"hybrid", "semantic", "lexical"}:
         raise HTTPException(400, "Unsupported mode")
     applicable = _date(applicable_date, "applicable_date")
     data = _read(file)
+    retriever = None
+    if browser_ranking and mode != "lexical" and model_files_status()["state"] != "files_present":
+        # The AI ranking was computed in the visitor's browser (see client_ranking.py).
+        try:
+            rankings = json.loads(browser_ranking)
+            if not isinstance(rankings, dict):
+                raise ValueError
+        except ValueError as exc:
+            raise HTTPException(400, "browser_ranking must be a JSON object") from exc
+        label = "browser:" + (browser_model[:80] or "multilingual-e5-small")
+        retriever = ClientRankedRetriever(mode, rankings, load_catalogue()[1], label)
     backend = os.getenv("POLISDIFF_AI_BACKEND_URL", "").rstrip("/")
-    if backend and mode != "lexical":
+    if backend and mode != "lexical" and retriever is None:
         import requests
         try:
             reply = requests.post(f"{backend}/v1/checks", timeout=100, files={"file": (file.filename or "offer.pdf", data, "application/pdf")},
@@ -150,7 +167,11 @@ def checks(file: UploadFile = File(...), applicable_date: str = Form(""), langua
             pass  # fall through to the local engine; the report records the mode actually used
     started = time.perf_counter()
     try:
-        doc, report = analyze_pdf(data, date.today(), applicable, web_retriever(mode))
+        if retriever is None:
+            doc, report = analyze_pdf(data, date.today(), applicable, web_retriever(mode))
+        else:
+            doc, report = analyze_pdf(data, date.today(), applicable, retriever,
+                                      on_document=lambda d: retriever.validate({p.id for p in d.passages}))
     except PDFError as exc:
         raise HTTPException(422, "PDF_UNREADABLE") from exc
     except BusyError as exc:
@@ -245,3 +266,25 @@ def letters(body: LetterRequest):
 def report_html(body: LocalizeRequest):
     """Printable HTML report (browser Print -> Save as PDF)."""
     return HTMLResponse(html_report(body.report, _lang(body.language)))
+
+
+@router.post("/passages")
+def passages(file: UploadFile = File(...)):
+    """Passage text and rule queries so the browser can rank them with its own AI model.
+    Ids are deterministic, so /v1/checks on the same file sees the same passages."""
+    try:
+        doc = extract_pdf(_read(file))
+    except PDFError as exc:
+        raise HTTPException(422, "PDF_UNREADABLE") from exc
+    return {"sha256": doc.sha256, "passages": [{"id": p.id, "text": p.normalized, "section": p.section} for p in doc.passages],
+            "queries": rule_queries(load_catalogue()[1])}
+
+
+class AdviceRequest(BaseModel):
+    report: Report
+    language: str = "ru"
+
+
+@router.post("/advice")
+def advice(body: AdviceRequest):
+    return action_plan(body.report, _lang(body.language))

@@ -62,7 +62,7 @@ def audit_document(doc: Document, audit_date: date, applicable_date: date | None
 
 
 def analyze_pdf(data: bytes, audit_date: date, applicable_date: date | None, retriever: Retriever,
-                *, date_basis="user_confirmed", on_progress=None) -> tuple[Document, Report]:
+                *, date_basis="user_confirmed", on_progress=None, on_document=None) -> tuple[Document, Report]:
     if not _ANALYSIS_GATE.acquire(blocking=False):
         raise BusyError("Analysis is already running. Please retry after it finishes.")
     try:
@@ -70,6 +70,8 @@ def analyze_pdf(data: bytes, audit_date: date, applicable_date: date | None, ret
         if on_progress:
             on_progress("extraction")
         doc = extract_pdf(data)
+        if on_document:
+            on_document(doc)
         extract_time = time.perf_counter()-start
         report = audit_document(doc, audit_date, applicable_date, retriever, date_basis=date_basis, on_progress=on_progress)
         report.timings_seconds["extraction"] = extract_time

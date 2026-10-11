@@ -1,6 +1,7 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import * as api from "@/lib/api";
+import { MODEL_ID, rankPassages, type AIProgress } from "@/lib/browserAI";
 import { useLang } from "@/lib/lang";
 import type { Catalogue, CheckResponse, View } from "@/lib/types";
 import { errorKey, mbOf } from "@/lib/util";
@@ -8,6 +9,8 @@ import UploadCard from "@/components/UploadCard";
 import DateGate from "@/components/DateGate";
 import Verdict from "@/components/Verdict";
 import { Button, ErrorNote } from "@/components/ui";
+
+const AI_PREF = "polisdiff-browser-ai";
 
 export default function Home() {
   const { t, lang } = useLang();
@@ -17,10 +20,26 @@ export default function Home() {
   const [view, setView] = useState<View | null>(null);
   const [busy, setBusy] = useState(false);
   const [stage, setStage] = useState(0);
+  const [detail, setDetail] = useState<string | undefined>();
+  const [ai, setAi] = useState(true);
+  const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const timers = useRef<number[]>([]);
+  const progressRef = useRef<(p: AIProgress) => void>(() => undefined);
 
-  useEffect(() => { api.catalogue().then(setCat).catch(() => undefined); }, []);
+  useEffect(() => {
+    api.catalogue().then(setCat).catch(() => undefined);
+    // Default: on for desktops, off for touch devices (the model download is ~120 MB). The choice is remembered.
+    try {
+      const saved = localStorage.getItem(AI_PREF);
+      setAi(saved === null ? !window.matchMedia("(pointer: coarse)").matches : saved === "1");
+    } catch { /* storage may be blocked */ }
+  }, []);
+  const chooseAi = (on: boolean) => { setAi(on); try { localStorage.setItem(AI_PREF, on ? "1" : "0"); } catch { /* ignore */ } };
+
+  progressRef.current = (p: AIProgress) => {
+    if (p.phase === "download") setDetail(t("ai.download", { pct: p.total ? Math.min(100, Math.round((p.loaded / p.total) * 100)) : 0 }));
+    else setDetail(t("ai.embed", { done: p.done, total: p.total }));
+  };
 
   // Switching language re-renders the verdict text from the report; the PDF is not re-read.
   useEffect(() => {
@@ -29,22 +48,32 @@ export default function Home() {
   }, [lang, data, view?.language]);
 
   const run = useCallback(async (f: File, date: string) => {
-    setBusy(true); setError(null); setFile(f); setStage(1);
-    timers.current.forEach(clearTimeout);
-    timers.current = [window.setTimeout(() => setStage(2), 1500), window.setTimeout(() => setStage(3), 3500)];
+    setBusy(true); setError(null); setNotice(null); setFile(f); setStage(1); setDetail(undefined);
     try {
-      const res = await api.check(f, lang, date);
+      let browser: { ranking: Record<string, string[]>; model: string } | undefined;
+      if (ai) {
+        try {
+          const info = await api.passages(f);
+          setStage(2);
+          const ranked = await rankPassages(info.passages, info.queries, (p) => progressRef.current(p));
+          browser = { ranking: ranked.ranking, model: MODEL_ID };
+        } catch (e) {
+          if (e instanceof api.ApiError) throw e;   // the PDF itself failed; report that
+          setNotice(t("ai.failed"));               // model could not run here; continue with keywords
+        }
+      }
+      setStage(3); setDetail(undefined);
+      const res = await api.check(f, lang, date, browser ? "hybrid" : "lexical", browser);
       setData(res); setView(res.view);
     } catch (e) {
       setError(t(errorKey(e), { mb: cat ? mbOf(cat.max_upload_bytes) : 10 }));
     } finally {
-      timers.current.forEach(clearTimeout);
-      setBusy(false); setStage(0);
+      setBusy(false); setStage(0); setDetail(undefined);
     }
-  }, [lang, t, cat]);
+  }, [ai, lang, t, cat]);
 
   const needsDate = view?.checks.every((c) => c.pending_date) ?? false;
-  const reset = () => { setData(null); setView(null); setFile(null); setError(null); };
+  const reset = () => { setData(null); setView(null); setFile(null); setError(null); setNotice(null); };
 
   if (data && view) {
     return (
@@ -52,10 +81,13 @@ export default function Home() {
         <div className="no-print flex flex-wrap gap-2">
           <Button onClick={reset}>← {t("btn.another")}</Button>
         </div>
+        {notice && <p className="rounded-xl bg-miss-bg px-4 py-3 text-miss">{notice}</p>}
         {needsDate && (
-          <DateGate suggestions={data.suggested_dates} range={cat?.supported_date_range} busy={busy}
-            onConfirm={(d) => file && run(file, d)} />
+          <div id="date-gate">
+            <DateGate suggestions={data.suggested_dates} range={cat?.supported_date_range} busy={busy} onConfirm={(d) => file && run(file, d)} />
+          </div>
         )}
+        {busy && detail && <p className="text-sm font-medium text-brand" aria-live="polite">{detail}</p>}
         {error && <ErrorNote>{error}</ErrorNote>}
         <Verdict data={data} view={view} file={file} />
       </div>
@@ -75,7 +107,8 @@ export default function Home() {
           ))}
         </ol>
       </div>
-      <UploadCard maxBytes={cat?.max_upload_bytes ?? 4 * 1024 * 1024} busy={busy} stage={stage} onRun={run} />
+      <UploadCard maxBytes={cat?.max_upload_bytes ?? 4 * 1024 * 1024} busy={busy} stage={stage} detail={detail}
+        ai={ai} onAi={chooseAi} onRun={run} />
       {error && <ErrorNote>{error}</ErrorNote>}
     </div>
   );
