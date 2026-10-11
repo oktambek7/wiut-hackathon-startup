@@ -47,3 +47,12 @@ Live demo: https://polisdiff-ai.vercel.app (project `polisdiff-ai`, deployed fro
 - API: https://polisdiff-ai.vercel.app/api/v1 (keyword retrieval, 4 MiB uploads)
 - To get hybrid AI retrieval and 10 MiB uploads, run the same API in a container with the model
   (`Dockerfile.space`, untested) and set `NEXT_PUBLIC_API_URL` to that host.
+
+## Keeping deployments current
+
+- **Web app (`polisdiff`, https://polisdiff.vercel.app):** connected to GitHub
+  `oktambek7/wiut-hackathon-startup`, root directory `web/`. Every push to `main` deploys to production;
+  other branches get preview URLs.
+- **API (`polisdiff-ai`, https://polisdiff-ai.vercel.app/api/v1):** assembled by `scripts/build_vercel.py`,
+  so it is deployed from the CLI after Python changes:
+  `python scripts/build_vercel.py; cd dist_vercel; npx vercel deploy --prod --yes --name polisdiff-ai`.
