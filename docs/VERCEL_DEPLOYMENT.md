@@ -34,3 +34,5 @@ python scripts/build_vercel.py
 cd dist_vercel
 npx vercel deploy --prod
 ```
+
+Live demo: https://polisdiff-ai.vercel.app (project `polisdiff-ai`, deployed from `dist_vercel/` with the Vercel CLI; Vercel Authentication disabled so judges can open it).
