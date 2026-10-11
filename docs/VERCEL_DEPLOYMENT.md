@@ -46,4 +46,4 @@ Live demo: https://polisdiff-ai.vercel.app (project `polisdiff-ai`, deployed fro
 - Web: https://polisdiff.vercel.app (`cd web && npx vercel deploy --prod --name polisdiff`)
 - API: https://polisdiff-ai.vercel.app/api/v1 (keyword retrieval, 4 MiB uploads)
 - To get hybrid AI retrieval and 10 MiB uploads, run the same API in a container with the model
-  (`Dockerfile.space`) and set `NEXT_PUBLIC_API_URL` to that host.
+  (`Dockerfile.space`, untested) and set `NEXT_PUBLIC_API_URL` to that host.

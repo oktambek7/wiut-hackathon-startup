@@ -1,0 +1,20 @@
+# API container for a Hugging Face Space (Docker SDK) or any container host: hybrid AI retrieval + 10 MiB uploads.
+# Serves the v1 API from polisdiff/server.py on $PORT (Spaces use 7860). NOT built or tested in this repo yet.
+FROM python:3.12-slim
+ARG TORCH_VERSION=2.14.1
+ARG MODEL_REVISION=614241f622f53c4eeff9890bdc4f31cfecc418b3
+WORKDIR /app
+ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1 PORT=7860 POLISDIFF_MODEL_PATH=/app/models/multilingual-e5-small \
+    HF_HUB_DISABLE_TELEMETRY=1 POLISDIFF_TORCH_THREADS=2 POLISDIFF_CORS_ORIGINS=*
+RUN pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu torch==${TORCH_VERSION}
+COPY requirements.runtime.lock.txt ./
+RUN pip install --no-cache-dir -r requirements.runtime.lock.txt fastapi uvicorn[standard] python-multipart
+COPY scripts/download_model.py scripts/download_model.py
+ENV POLISDIFF_MODEL_REVISION=${MODEL_REVISION}
+RUN python scripts/download_model.py
+COPY . .
+RUN useradd --create-home --uid 10001 appuser && chown -R appuser:appuser /app
+ENV HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1
+USER appuser
+EXPOSE 7860
+CMD ["sh", "-c", "uvicorn polisdiff.server:app --host 0.0.0.0 --port ${PORT}"]
