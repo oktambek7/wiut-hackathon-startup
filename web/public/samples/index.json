@@ -1,0 +1,44 @@
+[
+ {
+  "id": "ru-Cyrl_match",
+  "file": "/samples/ru-Cyrl_match.pdf",
+  "case": "match",
+  "language": "ru-Cyrl",
+  "applicable_date": "2026-01-05"
+ },
+ {
+  "id": "uz-Latn_payment_conflict",
+  "file": "/samples/uz-Latn_payment_conflict.pdf",
+  "case": "payment_conflict",
+  "language": "uz-Latn",
+  "applicable_date": "2026-01-05"
+ },
+ {
+  "id": "ru-Cyrl_sum_conflict",
+  "file": "/samples/ru-Cyrl_sum_conflict.pdf",
+  "case": "sum_conflict",
+  "language": "ru-Cyrl",
+  "applicable_date": "2026-01-05"
+ },
+ {
+  "id": "ru-Cyrl_payment_conflict",
+  "file": "/samples/ru-Cyrl_payment_conflict.pdf",
+  "case": "payment_conflict",
+  "language": "ru-Cyrl",
+  "applicable_date": "2026-01-05"
+ },
+ {
+  "id": "ru-Cyrl_notice_conflict",
+  "file": "/samples/ru-Cyrl_notice_conflict.pdf",
+  "case": "notice_conflict",
+  "language": "ru-Cyrl",
+  "applicable_date": "2026-01-05"
+ },
+ {
+  "id": "ru-Cyrl_omission",
+  "file": "/samples/ru-Cyrl_omission.pdf",
+  "case": "omission",
+  "language": "ru-Cyrl",
+  "applicable_date": "2026-01-05"
+ }
+]

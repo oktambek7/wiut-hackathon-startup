@@ -11,3 +11,7 @@ test-results/
 .streamlit/secrets.toml
 dist_vercel/
 .vercel/
+node_modules/
+.next/
+web/.vercel/
+web/tsconfig.tsbuildinfo

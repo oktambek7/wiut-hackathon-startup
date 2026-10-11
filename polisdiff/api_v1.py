@@ -13,11 +13,13 @@ import time
 from datetime import date
 
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
 from .deadlines import claim_clock
 from .deployment import model_files_status
 from .engine import load_catalogue
+from .export import html_report
 from .extraction import MAX_BYTES, PDFError, render_evidence, render_page
 from .i18n import LANGUAGES, TRANSLATIONS, tr, warning_text
 from .letters import deadline_letter, offer_conflict_letter
@@ -219,3 +221,9 @@ def letters(body: LetterRequest):
                                body.decision_date.isoformat() if body.decision_date else "", body.insurer, body.name, body.policy, today)
     except ValueError as exc:
         raise HTTPException(400, str(exc)) from exc
+
+
+@router.post("/report", response_class=HTMLResponse)
+def report_html(body: LocalizeRequest):
+    """Printable HTML report (browser Print -> Save as PDF)."""
+    return HTMLResponse(html_report(body.report, _lang(body.language)))

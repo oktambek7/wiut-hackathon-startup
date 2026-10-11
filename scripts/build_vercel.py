@@ -19,7 +19,8 @@ def main():
     shutil.copytree(ROOT / "vercel", OUT)
     shutil.copytree(ROOT / "polisdiff", OUT / "polisdiff", ignore=shutil.ignore_patterns("__pycache__"))
     (OUT / "rules").mkdir()
-    shutil.copy(ROOT / "rules" / "catalogue.v1.json", OUT / "rules")
+    for name in ("catalogue.v1.json", "holidays.json"):
+        shutil.copy(ROOT / "rules" / name, OUT / "rules")
     (OUT / "evaluation").mkdir()
     shutil.copy(ROOT / "evaluation" / "model_manifest.json", OUT / "evaluation")
     manifest = json.loads((ROOT / "evaluation" / "dataset_manifest.json").read_text(encoding="utf-8"))
